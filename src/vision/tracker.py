@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from collections import OrderedDict
-from scipy.spatial import distance as dist
 
 class CentroidTracker:
     """Centroid Object Tracker for object counting, path tracking, and movement analytics."""
@@ -49,7 +48,10 @@ class CentroidTracker:
             object_ids = list(self.objects.keys())
             object_centroids = list(self.objects.values())
 
-            D = dist.cdist(np.array(object_centroids), input_centroids)
+            D = np.linalg.norm(
+                np.array(object_centroids)[:, np.newaxis] - input_centroids,
+                axis=2
+            )
             rows = D.min(axis=1).argsort()
             cols = D.argmin(axis=1)[rows]
 
