@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Guard | AI Computer Vision Surveillance System</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="brand-text">
+                    <h2>VISION<span>GUARD</span></h2>
+                    <span class="sub">CV Security & Safety v2.4</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <span class="section-title">ACTIVE CV MODES</span>
+                <button class="nav-btn active" data-mode="intrusion" id="btn-mode-intrusion">
+                    <i class="fa-solid fa-vector-square"></i>
+                    <div class="btn-info">
+                        <span class="title">Perimeter Guard</span>
+                        <span class="desc">ROI Intrusion Detection</span>
+                    </div>
+                </button>
+
+                <button class="nav-btn" data-mode="face" id="btn-mode-face">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <div class="btn-info">
+                        <span class="title">Access Guard</span>
+                        <span class="desc">Face Recognition AI</span>
+                    </div>
+                </button>
+
+                <button class="nav-btn" data-mode="drowsiness" id="btn-mode-drowsiness">
+                    <i class="fa-solid fa-eye-slash"></i>
+                    <div class="btn-info">
+                        <span class="title">Health Guard</span>
+                        <span class="desc">Eye Fatigue & EAR Monitor</span>
+                    </div>
+                </button>
+
+                <button class="nav-btn" data-mode="tracking" id="btn-mode-tracking">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <div class="btn-info">
+                        <span class="title">Analytics Guard</span>
+                        <span class="desc">Centroid Object Tracker</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <span class="section-title">SYSTEM ACTIONS</span>
+                <button class="action-btn" id="btn-open-register">
+                    <i class="fa-solid fa-user-plus"></i> Register Face Profile
+                </button>
+                <button class="action-btn" id="btn-open-roi-modal">
+                    <i class="fa-solid fa-crop-simple"></i> Configure ROI Zone
+                </button>
+                <button class="action-btn" id="btn-export-csv">
+                    <i class="fa-solid fa-file-csv"></i> Download CSV Report
+                </button>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot pulsing"></span>
+                    <span id="system-status-text">System Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Navbar Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="active-mode-title">Perimeter Intrusion Guard</h1>
+                    <p id="active-mode-subtitle">Real-time background subtraction and ROI boundary monitoring</p>
+                </div>
+                <div class="header-controls">
+                    <button class="icon-toggle-btn active" id="btn-audio-toggle" title="Toggle Alarm Sound">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button class="icon-toggle-btn active" id="btn-snapshot-toggle" title="Toggle Auto Snapshots">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                    <div class="badge-live"><i class="fa-solid fa-circle"></i> LIVE STREAM</div>
+                </div>
+            </header>
+
+            <!-- Key Metric Cards Row -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="card-icon cyan"><i class="fa-solid fa-gauge-high"></i></div>
+                    <div class="card-data">
+                        <span class="label">Processing FPS</span>
+                        <span class="value" id="val-fps">0.0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="card-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="card-data">
+                        <span class="label">Total Security Alerts</span>
+                        <span class="value" id="val-total-alerts">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="card-icon orange"><i class="fa-solid fa-shield-virus"></i></div>
+                    <div class="card-data">
+                        <span class="label">Intrusions Logged</span>
+                        <span class="value" id="val-intrusions">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="card-icon purple"><i class="fa-solid fa-users-viewfinder"></i></div>
+                    <div class="card-data">
+                        <span class="label">Registered Profiles</span>
+                        <span class="value" id="val-persons">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Stream & Controls Split Grid -->
+            <div class="dashboard-grid">
+                <!-- Video Monitor Container -->
+                <div class="video-container-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-video"></i> Live Optical Feed</span>
+                        <span class="cam-info" id="cam-source-info">Source: HD Camera [0]</span>
+                    </div>
+                    <div class="video-wrapper">
+                        <img src="{{ url_for('video_feed') }}" id="video-stream" alt="Live Camera Feed">
+                        <canvas id="roi-canvas"></canvas>
+                        <div class="feed-overlay-badge" id="feed-badge">MONITORING</div>
+                    </div>
+                </div>
+
+                <!-- Live Control & Settings Card -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-sliders"></i> Sensitivity & Parameters</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="control-group">
+                            <label>Motion Sensitivity: <span id="lbl-sensitivity">25</span></label>
+                            <input type="range" id="slider-sensitivity" min="5" max="100" value="25">
+                        </div>
+
+                        <div class="control-group">
+                            <label>Minimum Motion Area (px): <span id="lbl-min-area">800</span></label>
+                            <input type="range" id="slider-min-area" min="100" max="5000" step="100" value="800">
+                        </div>
+
+                        <div class="control-group">
+                            <label>Face Confidence Threshold: <span id="lbl-face-conf">65</span>%</label>
+                            <input type="range" id="slider-face-conf" min="30" max="95" value="65">
+                        </div>
+
+                        <div class="control-group">
+                            <label>Eye Closure Threshold (EAR): <span id="lbl-ear">0.22</span></label>
+                            <input type="range" id="slider-ear" min="0.10" max="0.35" step="0.01" value="0.22">
+                        </div>
+
+                        <div class="control-group">
+                            <label>Cooldown Delay (Seconds): <span id="lbl-cooldown">3</span>s</label>
+                            <input type="range" id="slider-cooldown" min="1" max="10" value="3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Alerts Table Section -->
+            <div class="alerts-section-card">
+                <div class="card-header">
+                    <span><i class="fa-solid fa-list-check"></i> Security Event Audit Log</span>
+                    <button class="btn-small-danger" id="btn-clear-alerts">
+                        <i class="fa-solid fa-trash-can"></i> Clear Logs
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="alert-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>Severity</th>
+                                <th>Description</th>
+                                <th>Snapshot</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alert-logs-body">
+                            <tr>
+                                <td colspan="5" class="empty-msg">No alerts logged yet. System clear.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Face Registration Modal -->
+    <div class="modal" id="modal-register">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Register Face Profile</h3>
+                <span class="close-modal" id="close-register-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Position face in front of the camera and enter details to enroll identity.</p>
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="reg-person-name" placeholder="e.g., Alex Mercer">
+                </div>
+                <div class="input-group">
+                    <label>Role / Department</label>
+                    <select id="reg-person-role">
+                        <option value="Executive">Executive</option>
+                        <option value="Staff" selected>Staff Member</option>
+                        <option value="Contractor">Contractor</option>
+                        <option value="Security">Security Personnel</option>
+                    </select>
+                </div>
+                <div class="modal-alert" id="modal-register-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-cancel-register">Cancel</button>
+                <button class="btn-primary" id="btn-submit-register">Capture & Train Face</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snapshot Viewer Lightbox Modal -->
+    <div class="modal" id="modal-snapshot">
+        <div class="modal-content snapshot-modal-content">
+            <span class="close-modal" id="close-snapshot-modal">&times;</span>
+            <img src="" id="lightbox-img" alt="Alert Snapshot Preview">
+            <p id="lightbox-caption" class="lightbox-caption"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
